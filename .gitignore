@@ -1,0 +1,32 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Runtime state and diagnostic output
+*.log
+.demo_status.json
+status.json
+*.tmp
+
+# AI model weights
+models/
+*.gguf
+*.safetensors
+
+# Rust / Tauri build and generated schemas
+src-tauri/target/
+src-tauri/gen/
+
+# Python cache and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# IDE and OS-local files
+.kilo/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

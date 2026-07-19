@@ -1,0 +1,7 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code --event title_update --statusline",
+    "refreshInterval": 2
+  }
+}

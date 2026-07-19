@@ -1,0 +1,23 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default application permissions",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["http://127.0.0.1:8787/**"]
+  },
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-title",
+    "allow-create-session",
+    "allow-pty-input",
+    "allow-pty-resize",
+    "allow-close-session",
+    "allow-list-sessions",
+    "allow-detach-session",
+    "allow-rename-session",
+    "allow-summarize-screen",
+    "allow-update-session-metadata",
+    "allow-set-language"
+  ]
+}

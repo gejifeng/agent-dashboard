@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Agent Dashboard",
+  "version": "0.1.0",
+  "identifier": "com.agent.dashboard",
+  "build": {
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Agent Dashboard",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 720,
+        "minHeight": 540,
+        "resizable": true,
+        "url": "http://127.0.0.1:8787/"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico"],
+    "windows": {
+      "nsis": {
+        "languages": ["English", "SimpChinese"],
+        "displayLanguageSelector": true
+      }
+    }
+  }
+}

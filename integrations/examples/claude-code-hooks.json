@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code" }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code" }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent claude_code" }
+        ]
+      }
+    ]
+  }
+}

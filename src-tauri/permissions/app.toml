@@ -1,0 +1,51 @@
+"$schema" = "https://schema.tauri.app/config/2/permission"
+
+[[permission]]
+identifier = "allow-create-session"
+description = "Allow creating terminal sessions"
+commands.allow = ["create_session"]
+
+[[permission]]
+identifier = "allow-pty-input"
+description = "Allow writing terminal input"
+commands.allow = ["pty_input"]
+
+[[permission]]
+identifier = "allow-pty-resize"
+description = "Allow resizing terminal sessions"
+commands.allow = ["pty_resize"]
+
+[[permission]]
+identifier = "allow-close-session"
+description = "Allow closing terminal sessions"
+commands.allow = ["close_session"]
+
+[[permission]]
+identifier = "allow-list-sessions"
+description = "Allow listing terminal sessions"
+commands.allow = ["list_sessions"]
+
+[[permission]]
+identifier = "allow-detach-session"
+description = "Allow detaching terminal sessions"
+commands.allow = ["detach_session"]
+
+[[permission]]
+identifier = "allow-rename-session"
+description = "Allow renaming terminal sessions"
+commands.allow = ["rename_session"]
+
+[[permission]]
+identifier = "allow-summarize-screen"
+description = "Allow submitting terminal screen text for summarization"
+commands.allow = ["summarize_screen"]
+
+[[permission]]
+identifier = "allow-update-session-metadata"
+description = "Allow syncing native agent session IDs and titles"
+commands.allow = ["update_session_metadata"]
+
+[[permission]]
+identifier = "allow-set-language"
+description = "Allow switching the interface and summary language"
+commands.allow = ["set_language"]

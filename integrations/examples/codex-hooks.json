@@ -1,0 +1,42 @@
+{
+  "description": "Agent Dashboard lifecycle reporting",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent codex", "commandWindows": "py -3 \"%AGENT_DASHBOARD_HOOK%\" --agent codex" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent codex", "commandWindows": "py -3 \"%AGENT_DASHBOARD_HOOK%\" --agent codex" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent codex", "commandWindows": "py -3 \"%AGENT_DASHBOARD_HOOK%\" --agent codex" }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent codex", "commandWindows": "py -3 \"%AGENT_DASHBOARD_HOOK%\" --agent codex" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"$AGENT_DASHBOARD_HOOK\" --agent codex", "commandWindows": "py -3 \"%AGENT_DASHBOARD_HOOK%\" --agent codex" }
+        ]
+      }
+    ]
+  }
+}
