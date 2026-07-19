@@ -18,9 +18,9 @@ struct ApiState {
 }
 
 // 前端页面在编译时嵌入，单 exe 自包含
-// dashboard.html 是前端的唯一源文件。不要从 dist/index.html 嵌入，
-// 否则未手工复制到 dist 的终端修复在 Tauri 中会完全不生效。
-const INDEX_HTML: &str = include_str!("../../dashboard.html");
+// frontend/index.html is the single front-end source. Tauri's frontendDist and
+// the embedded local HTTP server both use it, so there is no generated copy to drift.
+const INDEX_HTML: &str = include_str!("../../frontend/index.html");
 
 pub async fn serve(
     store: Arc<Store>,

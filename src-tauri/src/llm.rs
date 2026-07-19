@@ -129,7 +129,17 @@ impl LlmEngine {
 
 static LLM_ENGINE: OnceLock<Result<LlmEngine, String>> = OnceLock::new();
 static SUMMARIZE_LOCK: Mutex<()> = Mutex::new(());
-const MODEL_PATH: &str = "D:\\DEV\\agrent_panel\\models\\Qwen3.5-2B-Q4_K_M.gguf";
+
+fn local_model_path() -> std::path::PathBuf {
+    std::env::var_os("LOCAL_LLM_MODEL_PATH")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| {
+            std::env::current_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("."))
+                .join("models")
+                .join("Qwen3.5-2B-Q4_K_M.gguf")
+        })
+}
 
 /// 全局摘要入口：串行调用外部 API 或本地模型。会话层会合并 pending 状态，
 /// 因而这里等待锁不会堆积同一终端的过时屏幕。
@@ -141,7 +151,8 @@ pub fn summarize(text: &str, language: UiLanguage) -> Result<String, String> {
     if std::env::var("DEEPSEEK_API_KEY").is_ok() {
         return summarize_external(text, language);
     }
-    let engine = LLM_ENGINE.get_or_init(|| LlmEngine::new(std::path::Path::new(MODEL_PATH)));
+    let model_path = local_model_path();
+    let engine = LLM_ENGINE.get_or_init(|| LlmEngine::new(&model_path));
     match engine {
         Ok(e) => e.summarize(text, language),
         Err(e) => Err(e.clone()),

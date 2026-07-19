@@ -1,4 +1,4 @@
-use agent_dashboard::llm;
+use agent_dashboard::{llm, UiLanguage};
 
 fn main() {
     // 加载 .env（cwd + exe 旁 + target/release）
@@ -30,7 +30,7 @@ fn main() {
         "TUI 样本（前200字）:\n{}\n",
         tui.chars().take(200).collect::<String>()
     );
-    match llm::summarize(&tui) {
+    match llm::summarize(&tui, UiLanguage::ZhCn) {
         Ok(s) => println!("摘要: {}", s),
         Err(e) => println!("失败: {}", e),
     }

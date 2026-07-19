@@ -2,7 +2,7 @@
 """
 最小 HTTP 服务：
 - GET /api/status  -> 返回当前所有任务状态的 JSON
-- GET /             -> 托管前端 dashboard.html（需要把它放在同一目录下，或改 DASHBOARD_HTML 路径）
+- GET /             -> 托管正式前端 frontend/index.html
 
 用法：
     python server.py            # 默认监听 0.0.0.0:8787
@@ -19,7 +19,8 @@ from pathlib import Path
 
 from status_store import get_all
 
-DASHBOARD_HTML = Path(__file__).parent / "dashboard.html"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DASHBOARD_HTML = PROJECT_ROOT / "frontend" / "index.html"
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -47,7 +48,7 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-                self.wfile.write(b"dashboard.html not found")
+                self.wfile.write(b"frontend/index.html not found")
         else:
             self.send_response(404)
             self.end_headers()

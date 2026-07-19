@@ -10,7 +10,7 @@
 4. 检测到进程退出 / 长时间无输出 时自动标记 idle。
 
 用法：
-    python cli_wrapper.py \
+    python prototypes/python-dashboard/cli_wrapper.py \
         --task-id vllm-deploy \
         --node gejifengai \
         --cli codex \
@@ -88,7 +88,7 @@ def main():
     if cmd and cmd[0] == "--":
         cmd = cmd[1:]
     if not cmd:
-        print("请在 -- 之后提供要执行的命令，例如: cli_wrapper.py --task-id x --node y --cli codex -- codex run ...")
+        print("请在 -- 之后提供要执行的命令，例如: python prototypes/python-dashboard/cli_wrapper.py --task-id x --node y --cli codex -- codex run ...")
         sys.exit(1)
 
     buf = collections.deque(maxlen=200)

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::io::Read;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::ipc::{Channel, InvokeResponseBody};
 use tauri::{AppHandle, Emitter, State};
@@ -851,7 +851,7 @@ fn log_summary(msg: &str) {
     if let Ok(mut f) = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open("D:\\DEV\\agrent_panel\\summary_debug.log")
+        .open(diagnostic_log_path("summary_debug.log"))
     {
         use std::io::Write;
         let t = SystemTime::now()
@@ -866,11 +866,28 @@ fn log_screen(msg: &str) {
     if let Ok(mut f) = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open("D:\\DEV\\agrent_panel\\screen_capture.log")
+        .open(diagnostic_log_path("screen_capture.log"))
     {
         use std::io::Write;
         let _ = writeln!(f, "{}", msg);
     }
+}
+
+fn diagnostic_log_path(file_name: &str) -> std::path::PathBuf {
+    static LOG_DIR: OnceLock<std::path::PathBuf> = OnceLock::new();
+    let dir = LOG_DIR.get_or_init(|| {
+        let path = std::env::var_os("AGENT_DASHBOARD_LOG_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::env::current_dir()
+                    .unwrap_or_else(|_| std::path::PathBuf::from("."))
+                    .join("runtime")
+                    .join("logs")
+            });
+        let _ = std::fs::create_dir_all(&path);
+        path
+    });
+    dir.join(file_name)
 }
 
 fn strip_ansi(s: &str) -> String {

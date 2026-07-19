@@ -1,6 +1,7 @@
 mod agent_support;
 mod api;
 pub mod llm;
+pub use agent_support::UiLanguage;
 mod pty;
 mod session;
 mod store;

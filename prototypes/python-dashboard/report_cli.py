@@ -3,7 +3,7 @@
 命令行上报工具。给 Hermes / Anima 这类自研 agent 的心跳机制直接调用。
 
 用法示例（在 heartbeat 逻辑里 shell out 一下即可）：
-    python report_cli.py \
+    python prototypes/python-dashboard/report_cli.py \
         --task-id noos-node1-election-fix \
         --node gejifengai \
         --cli claude \

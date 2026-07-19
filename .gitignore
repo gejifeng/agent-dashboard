@@ -8,6 +8,7 @@
 .demo_status.json
 status.json
 *.tmp
+runtime/
 
 # AI model weights
 models/
