@@ -113,16 +113,6 @@ body:not(.tauri) .tb-controls{display:none;}
 .topbar{display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:14px; flex-wrap:wrap;}
 .topbar-right{display:flex; align-items:center; gap:9px;}
 
-/* 计数从四个方块改成一条安静的内联统计带 */
-.counts{display:flex; align-items:center; gap:2px; padding:4px; background:var(--panel); border:1px solid var(--border); border-radius:11px;}
-.count{
-  display:flex; align-items:center; gap:7px; padding:6px 11px; border-radius:8px;
-  font-size:11.5px; color:var(--text-dim); transition:background .18s var(--ease);
-}
-.count:hover{background:var(--panel-2);}
-.count b{color:var(--text); font-weight:600; font-size:12.5px; font-family:var(--mono); min-width:12px; text-align:right;}
-.count .dot{width:6px;height:6px;border-radius:50%;}
-
 .language-select{
   padding:8px 11px; font-size:11.5px; color:var(--text-dim); background:var(--panel);
   border:1px solid var(--border); border-radius:10px; font-family:inherit; cursor:pointer;
@@ -147,12 +137,14 @@ body:not(.tauri) .tb-controls{display:none;}
 .overview .summary b{color:var(--text); font-weight:600;}
 .overview .total{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); white-space:nowrap; letter-spacing:0.02em;}
 
-.dist{height:3px; border-radius:99px; background:rgba(255,255,255,0.05); overflow:hidden; display:flex; gap:2px; margin-bottom:18px;}
+/* 分布条与筛选条同行，占满剩余宽度 */
+.dist{flex:1; min-width:80px; height:3px; border-radius:99px; background:rgba(255,255,255,0.05); overflow:hidden; display:flex; gap:2px;}
 .dist span{height:100%; border-radius:99px; transition:width .6s var(--ease);}
 .dist .empty-fill{flex:1; background:transparent;}
 
 /* ---------- 筛选 ---------- */
-.filters{display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;}
+.filters{display:flex; align-items:center; gap:18px; margin-bottom:16px;}
+.filters .chips{flex-shrink:0;}
 .chips{display:flex; gap:2px; background:var(--panel); border:1px solid var(--border); padding:4px; border-radius:11px;}
 .chip{padding:6px 12px; font-size:12px; color:var(--text-dim); border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all .18s var(--ease); font-weight:450; border:none; background:transparent; font-family:inherit; white-space:nowrap;}
 .chip:hover{color:var(--text); background:var(--panel-2);}
@@ -161,8 +153,8 @@ body:not(.tauri) .tb-controls{display:none;}
 .chip .n{font-family:var(--mono); font-size:10px; color:var(--text-faint); min-width:12px; text-align:right;}
 .chip.active .n{color:var(--text-dim);}
 
-.search{margin-left:auto; position:relative;}
-.search input{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px 13px 9px 34px; color:var(--text); font-size:12.5px; width:250px; font-family:inherit; outline:none; transition:all .18s var(--ease);}
+.search{position:relative; display:flex; align-items:center;}
+.search input{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:8px 13px 8px 34px; color:var(--text); font-size:12.5px; width:236px; font-family:inherit; outline:none; transition:all .18s var(--ease);}
 .search input:hover{border-color:var(--border-hover);}
 .search input:focus{border-color:var(--accent); background:var(--panel-2); box-shadow:0 0 0 3px var(--accent-soft); outline:none;}
 .search input::placeholder{color:var(--text-faint);}
@@ -283,14 +275,16 @@ body:not(.tauri) .tb-controls{display:none;}
 }
 
 @media (max-width: 900px){
-  body{padding:26px 22px 48px;}
-  .overview .summary{font-size:17px;}
+  /* 上内边距必须保留标题栏高度，否则内容会滑到固定标题栏下面 */
+  body{padding:calc(var(--tb-h) + 16px) 22px 48px;}
+  .overview .summary{font-size:16px;}
+  .filters{gap:14px;}
 }
 @media (max-width: 720px){
-  body{padding:20px 16px 40px;}
-  .topbar{flex-direction:column; align-items:flex-start; gap:16px;}
+  body{padding:calc(var(--tb-h) + 14px) 16px 40px;}
+  .topbar{flex-direction:column; align-items:flex-start; gap:14px;}
   .topbar-right{width:100%; flex-wrap:wrap;}
-  .counts{flex-wrap:wrap;}
+  .search{flex:1; min-width:150px;}
   .overview{flex-direction:column; align-items:flex-start; gap:6px;}
   .overview .summary{font-size:16px;}
   .search input{width:100%;}
@@ -327,11 +321,9 @@ body:not(.tauri) .tb-controls{display:none;}
       <div class="total" id="total">0 tasks</div>
     </div>
     <div class="topbar-right">
-      <div class="counts">
-        <div class="count"><span class="dot" style="background:var(--ok)"></span><span data-i18n="statusOk">正常</span> <b id="cnt-ok">0</b></div>
-        <div class="count"><span class="dot" style="background:var(--warn)"></span><span data-i18n="statusWarn">迟缓</span> <b id="cnt-warn">0</b></div>
-        <div class="count"><span class="dot" style="background:var(--err)"></span><span data-i18n="statusErr">需处理</span> <b id="cnt-err">0</b></div>
-        <div class="count"><span class="dot" style="background:var(--idle)"></span><span data-i18n="statusIdle">空闲</span> <b id="cnt-idle">0</b></div>
+      <div class="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" type="text" placeholder="搜索任务 / 节点 / 摘要…" data-i18n-placeholder="searchPlaceholder" autocomplete="off">
       </div>
       <select class="language-select" id="language-select" aria-label="语言" data-i18n-aria-label="language">
         <option value="zh-CN">中文</option>
@@ -341,8 +333,6 @@ body:not(.tauri) .tb-controls{display:none;}
     </div>
   </header>
 
-  <div class="dist" id="dist"></div>
-
   <div class="filters">
     <div class="chips" id="chips">
       <button class="chip active" data-filter="all"><span data-i18n="filterAll">全部</span> <span class="n">0</span></button>
@@ -351,10 +341,7 @@ body:not(.tauri) .tb-controls{display:none;}
       <button class="chip" data-filter="err"><span class="dot" style="background:var(--err)"></span><span data-i18n="statusErr">需处理</span> <span class="n">0</span></button>
       <button class="chip" data-filter="idle"><span class="dot" style="background:var(--idle)"></span><span data-i18n="statusIdle">空闲</span> <span class="n">0</span></button>
     </div>
-    <div class="search">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="search" type="text" placeholder="搜索任务 / 节点 / 摘要…" data-i18n-placeholder="searchPlaceholder" autocomplete="off">
-    </div>
+    <div class="dist" id="dist"></div>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -584,9 +571,6 @@ function renderOverview(counts, total){
     ? t('taskCount', {count:total, taskNoun:noun(total,'task','tasks')})
     : t('taskCount', {count:total});
 }
-function renderCounts(counts){
-  for(const k of ['ok','warn','err','idle']) document.getElementById('cnt-'+k).textContent = counts[k];
-}
 function renderChips(counts, total){
   document.querySelectorAll('.chip').forEach(c=>{
     const k = c.dataset.filter;
@@ -666,7 +650,6 @@ async function tick(){
   allTasks.forEach(t=> counts[t.status]++);
   const total = allTasks.length;
   renderOverview(counts, total);
-  renderCounts(counts);
   renderChips(counts, total);
   renderCards(applyFilter(allTasks), firstLoad);
   firstLoad = false;
