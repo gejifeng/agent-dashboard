@@ -20,6 +20,7 @@ llama-cpp-2 = "0.1.151"
 encoding_rs = "0.8.35"
 ureq = { version = "2", features = ["json"] }
 dotenvy = "0.15.7"
+url = "2"
 
 [features]
 default = ["custom-protocol"]

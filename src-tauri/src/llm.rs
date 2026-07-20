@@ -11,6 +11,7 @@ use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 
 use crate::agent_support::UiLanguage;
+use crate::settings::{validate_non_thinking_model, ApiConfig, ApiProvider, THINKING_MODE_ERROR};
 
 static BACKEND: OnceLock<LlamaBackend> = OnceLock::new();
 
@@ -117,13 +118,10 @@ impl LlmEngine {
             n_cur += 1;
             ctx.decode(&mut batch).map_err(|e| e.to_string())?;
         }
-        // Qwen3 thinking 模型：取 </think> 后的实际回答
-        let answer = if let Some(idx) = result.find("</think>") {
-            &result[idx + "</think>".len()..]
-        } else {
-            &result[..]
-        };
-        Ok(answer.trim().to_string())
+        if contains_thinking_markup(&result) {
+            return Err(THINKING_MODE_ERROR.to_string());
+        }
+        Ok(result.trim().to_string())
     }
 }
 
@@ -147,9 +145,9 @@ pub fn summarize(text: &str, language: UiLanguage) -> Result<String, String> {
     let _guard = SUMMARIZE_LOCK
         .lock()
         .map_err(|_| "summary lock poisoned".to_string())?;
-    // 优先外部 API
-    if std::env::var("DEEPSEEK_API_KEY").is_ok() {
-        return summarize_external(text, language);
+    // Prefer a configured OpenAI-compatible API. If no key is available, use the local model.
+    if let Some(config) = crate::settings::effective_api_config() {
+        return summarize_external(text, language, &config);
     }
     let model_path = local_model_path();
     let engine = LLM_ENGINE.get_or_init(|| LlmEngine::new(&model_path));
@@ -159,34 +157,87 @@ pub fn summarize(text: &str, language: UiLanguage) -> Result<String, String> {
     }
 }
 
-/// 外部 API（DeepSeek，OpenAI 兼容）摘要
-fn summarize_external(text: &str, language: UiLanguage) -> Result<String, String> {
-    let key = std::env::var("DEEPSEEK_API_KEY").map_err(|_| "no DEEPSEEK_API_KEY".to_string())?;
+/// OpenAI-compatible external summary API.
+fn summarize_external(
+    text: &str,
+    language: UiLanguage,
+    config: &ApiConfig,
+) -> Result<String, String> {
+    validate_non_thinking_model(&config.model)?;
     let (system, user) = prompts(text, language);
-    let body = serde_json::json!({
-        "model": "deepseek-v4-flash",
+    let mut body = serde_json::json!({
+        "model": config.model,
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user}
         ],
         "max_tokens": 1000,
         "temperature": 0,
-        "stream": false,
-        "enable_thinking": false
+        "stream": false
     });
-    let resp = ureq::post("https://api.deepseek.com/chat/completions")
-        .set("Authorization", &format!("Bearer {}", key))
-        .set("Content-Type", "application/json")
+    match config.provider {
+        ApiProvider::DeepSeek => body["thinking"] = serde_json::json!({"type": "disabled"}),
+        ApiProvider::OpenAi => {
+            if let Some(object) = body.as_object_mut() {
+                object.remove("max_tokens");
+                object.remove("temperature");
+                object.insert("max_completion_tokens".to_string(), serde_json::json!(1000));
+            }
+        }
+        ApiProvider::SiliconFlow => body["enable_thinking"] = serde_json::json!(false),
+        _ => {}
+    }
+    let endpoint = config.chat_completions_url();
+    let mut request = ureq::post(&endpoint).set("Content-Type", "application/json");
+    if let Some(api_key) = &config.api_key {
+        request = request.set("Authorization", &format!("Bearer {api_key}"));
+    }
+    let resp = request
         .send_string(&body.to_string())
         .map_err(|e| format!("api: {}", e))?;
     let json: serde_json::Value = resp.into_json().map_err(|e| e.to_string())?;
-    let content = json["choices"][0]["message"]["content"]
+    let message = &json["choices"][0]["message"];
+    let content = message["content"]
         .as_str()
-        .ok_or_else(|| format!("no content: {}", json))?;
+        .ok_or_else(|| "API response has no summary content".to_string())?;
+    if response_used_thinking(message, &json) || contains_thinking_markup(content) {
+        return Err(THINKING_MODE_ERROR.to_string());
+    }
     if content.trim().is_empty() {
-        return Err(format!("empty content, response: {}", json));
+        return Err("API response contains an empty summary".to_string());
     }
     Ok(content.to_string())
+}
+
+fn contains_thinking_markup(content: &str) -> bool {
+    let content = content.to_ascii_lowercase();
+    content.contains("<think>") || content.contains("</think>")
+}
+
+fn response_used_thinking(message: &serde_json::Value, response: &serde_json::Value) -> bool {
+    fn populated(value: &serde_json::Value) -> bool {
+        match value {
+            serde_json::Value::Null => false,
+            serde_json::Value::String(value) => !value.trim().is_empty(),
+            serde_json::Value::Array(value) => !value.is_empty(),
+            serde_json::Value::Object(value) => !value.is_empty(),
+            serde_json::Value::Number(value) => value.as_u64().unwrap_or(0) > 0,
+            serde_json::Value::Bool(value) => *value,
+        }
+    }
+
+    [
+        "reasoning_content",
+        "reasoning_details",
+        "reasoning",
+        "thinking",
+    ]
+    .iter()
+    .any(|field| populated(&message[*field]))
+        || response["usage"]["completion_tokens_details"]["reasoning_tokens"]
+            .as_u64()
+            .unwrap_or(0)
+            > 0
 }
 
 fn prompts(text: &str, language: UiLanguage) -> (String, String) {
@@ -195,10 +246,40 @@ fn prompts(text: &str, language: UiLanguage) -> (String, String) {
         UiLanguage::En => "The description must be written in English.",
     };
     let system = format!(
-        "You analyze terminal state and produce a stable one-line summary. {output_instruction}"
+        "You analyze terminal state and produce a stable one-line summary without chain-of-thought. {output_instruction}"
     );
     let user = format!(
         "State rules:\n- ok: the command or agent is actively working (progress/loading/thinking)\n- idle: work has completed and the terminal is waiting for the next command\n- warn: a non-fatal warning or retry is active\n- err: user action is required (error/password/confirmation/input)\n\nFocus on the newest control lines near the bottom. Ignore historical output and dynamic UI values such as spinners, elapsed time, token counts, and progress values.\n\nReturn exactly one line in the form status|description. Use one short sentence describing the current concrete task. Do not quote or reproduce the screen. {output_instruction}\n\nTerminal context:\n{text}"
     );
     (system, user)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detects_thinking_fields_and_markup() {
+        let response = serde_json::json!({
+            "choices": [{"message": {"content": "ok|done", "reasoning_content": "hidden"}}]
+        });
+        assert!(response_used_thinking(
+            &response["choices"][0]["message"],
+            &response
+        ));
+        assert!(contains_thinking_markup("<think>work</think>idle|done"));
+    }
+
+    #[test]
+    fn accepts_plain_non_thinking_response() {
+        let response = serde_json::json!({
+            "choices": [{"message": {"content": "idle|done", "reasoning_content": ""}}],
+            "usage": {"completion_tokens_details": {"reasoning_tokens": 0}}
+        });
+        assert!(!response_used_thinking(
+            &response["choices"][0]["message"],
+            &response
+        ));
+        assert!(!contains_thinking_markup("idle|done"));
+    }
 }

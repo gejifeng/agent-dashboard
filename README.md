@@ -12,6 +12,7 @@
 - DeepSeek `deepseek-v4-flash` 外部摘要；未配置 Key 时可回退本地 llama.cpp 模型。
 - 卡片标题优先使用 Agent 原生任务名，用户手动重命名后不再被自动标题覆盖。
 - 简体中文/English 完整切换，界面、固定状态摘要、AI 输出语言和 NSIS 安装器均支持双语。
+- 内置设置面板，可配置语言、API 厂商、Base URL、模型和 API Key；厂商地址使用经过校验的官方预置。
 - 本地 HTTP 上报 API，可接入自研 Agent；HTTP 服务仅监听 `127.0.0.1:8787`。
 
 ## 项目结构
@@ -45,11 +46,31 @@ cargo run --manifest-path .\src-tauri\Cargo.toml
 
 ## AI 摘要配置
 
+推荐点击主界面右上角的齿轮按钮进行配置。当前支持：
+
+| 厂商 | 预置 Base URL |
+|---|---|
+| DeepSeek | `https://api.deepseek.com` |
+| OpenAI | `https://api.openai.com/v1` |
+| OpenRouter | `https://openrouter.ai/api/v1` |
+| SiliconFlow | `https://api.siliconflow.cn/v1` |
+| 自定义（OpenAI 兼容） | 用户填写 |
+
+选择预置厂商时 Base URL 由后端固定，选择“自定义”后才可编辑；模型名称始终可以修改。设置变更会清空旧摘要缓存，使后续摘要使用新服务。
+
+API Key 保存到当前用户配置目录（Windows 默认为 `%APPDATA%\Agent Dashboard\settings.json`），不会写进项目或回传完整值给前端。该文件依赖操作系统用户目录权限保护，并非系统密钥链加密文件。
+
+AI 摘要仅允许非思考模式。DeepSeek V4、SiliconFlow 等混合模型会在请求中强制关闭 thinking；`deepseek-reasoner`、R1、QwQ、OpenAI o 系列/GPT-5 等明确的推理模型会在保存设置时被拒绝。如果服务仍返回 reasoning 内容或 `<think>` 标记，本次摘要会直接报错。
+
+环境变量仍可作为无界面配置和兼容回退：
+
 外部 DeepSeek 摘要：
 
 ```dotenv
 DEEPSEEK_API_KEY=your_key_here
 ```
+
+其他厂商分别读取 `OPENAI_API_KEY`、`OPENROUTER_API_KEY`、`SILICONFLOW_API_KEY`。设置面板中保存的 Key 优先于环境变量。
 
 不要提交 `.env`。仓库只包含空的 `.env.example`。
 

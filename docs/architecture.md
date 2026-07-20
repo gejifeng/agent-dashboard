@@ -27,6 +27,7 @@ agent-dashboard/
 │  │  ├─ llm.rs                    # DeepSeek/local llama.cpp summaries
 │  │  ├─ pty.rs                    # portable PTY abstraction
 │  │  ├─ session.rs                # terminal lifecycle and stable summary pipeline
+│  │  ├─ settings.rs               # persisted, redacted provider/API configuration
 │  │  └─ store.rs                  # externally reported task storage
 │  ├─ capabilities/ · permissions/ # Tauri ACL
 │  └─ tauri.conf.json
@@ -53,6 +54,8 @@ agent-dashboard/
    `session.rs` and `pty.rs`.
 5. OpenCode, Claude Code, and Codex adapters may send structured lifecycle events. Screen parsing
    remains a fallback when an adapter is absent or temporarily silent.
+6. `settings.rs` persists user preferences outside the repository and supplies a validated,
+   redacted OpenAI-compatible API configuration to the summary layer.
 
 ## Stable summary pipeline
 
@@ -69,8 +72,20 @@ The Rust layer provides the final stability guarantees:
 - structured lifecycle state overrides LLM state;
 - language-specific cache keys prevent Chinese and English results from mixing.
 
-DeepSeek is used when `DEEPSEEK_API_KEY` exists. Otherwise the application tries the local model
-at `LOCAL_LLM_MODEL_PATH`, defaulting to `models/Qwen3.5-2B-Q4_K_M.gguf`.
+An external API is used when the active provider has a saved key or its provider-specific
+environment key. Otherwise the application tries the local model at `LOCAL_LLM_MODEL_PATH`,
+defaulting to `models/Qwen3.5-2B-Q4_K_M.gguf`.
+
+The settings panel can instead select DeepSeek, OpenAI, OpenRouter, SiliconFlow, or a custom
+OpenAI-compatible endpoint. Provider URLs are enforced in Rust; custom URLs are restricted to
+HTTP(S) hosts without embedded credentials, query parameters, or fragments. API-setting changes
+advance a configuration revision, clear semantic caches, and make in-flight results from the old
+configuration stale.
+
+Summary generation is non-thinking only. Known reasoning-only model identifiers are rejected
+when settings are saved and checked again before each request. Hybrid providers receive their
+documented disable-thinking switch; responses containing reasoning fields, reasoning tokens, or
+`<think>` markup are rejected and surfaced on the affected card.
 
 ## Session names
 
@@ -104,6 +119,8 @@ summarization use local Tauri commands governed by `src-tauri/permissions/app.to
 ## Local data and secrets
 
 - `.env` contains local credentials and is ignored by Git.
+- UI settings are stored under the current user's configuration directory. API keys are never
+  returned in full to JavaScript, though the local settings file itself is not keychain-encrypted.
 - model weights live under `models/` and are ignored by Git.
 - diagnostics default to `runtime/logs/` and are ignored by Git; override with
   `AGENT_DASHBOARD_LOG_DIR`.

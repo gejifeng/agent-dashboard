@@ -4,6 +4,7 @@ pub mod llm;
 pub use agent_support::UiLanguage;
 mod pty;
 mod session;
+mod settings;
 mod store;
 
 use std::sync::Arc;
@@ -17,8 +18,10 @@ pub fn run() {
         }
     }
     let _ = dotenvy::dotenv();
+    let settings_manager = settings::initialize();
     let store = Arc::new(store::Store::load());
-    let session_manager = session::SessionManager::new();
+    let session_manager =
+        session::SessionManager::new(settings_manager.language().unwrap_or_default());
 
     // 独立线程 + tokio runtime 跑 axum HTTP 服务（托管前端 + 状态 API）
     let store_for_server = store.clone();
@@ -44,7 +47,10 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(session_manager)
+        .manage(settings_manager)
         .invoke_handler(tauri::generate_handler![
+            settings::get_app_settings,
+            settings::save_app_settings,
             session::create_session,
             session::list_sessions,
             session::detach_session,

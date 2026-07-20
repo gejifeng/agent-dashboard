@@ -84,11 +84,11 @@ body::after{
 .tb-sub{font-family:var(--mono); font-size:9.5px; color:var(--text-faint); display:flex; align-items:center; gap:6px; letter-spacing:0.02em; white-space:nowrap;}
 .logo{
   width:19px; height:19px; border-radius:6px; flex-shrink:0;
-  background: linear-gradient(140deg,#7C7AF5,#A855F7 55%,#6366F1);
-  display:grid; grid-template-columns:1fr 1fr; gap:2px; padding:4.5px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 4px 12px -3px rgba(110,107,239,0.6);
+  background:var(--accent);
+  display:grid; place-items:center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 4px 12px -3px rgba(110,107,239,0.55);
 }
-.logo i{background:rgba(255,255,255,0.95); border-radius:1px;}
+.logo svg{width:13px; height:13px; display:block;}
 .live{display:inline-flex; align-items:center; gap:5px; color:var(--ok);}
 .live .d{width:5px;height:5px;border-radius:50%; background:var(--ok); box-shadow:0 0 8px var(--ok); animation:pulse 2.4s var(--ease) infinite;}
 
@@ -119,6 +119,16 @@ body:not(.tauri) .tb-controls{display:none;}
   outline:none; transition:all .18s var(--ease); color-scheme:dark;
 }
 .language-select:hover,.language-select:focus{border-color:var(--border-hover); color:var(--text); background:var(--panel-2);}
+
+.icon-btn{
+  width:36px; height:36px; display:grid; place-items:center; flex-shrink:0;
+  color:var(--text-dim); background:var(--panel); border:1px solid var(--border);
+  border-radius:10px; cursor:pointer; transition:all .18s var(--ease);
+}
+.icon-btn:hover{color:var(--text); background:var(--panel-2); border-color:var(--border-hover); transform:translateY(-1px);}
+.icon-btn:active{transform:translateY(0);}
+.icon-btn svg{width:16px; height:16px;}
+body:not(.tauri) .settings-btn{display:none;}
 
 .new-term-btn{
   padding:9px 16px; font-size:12.5px; font-weight:500; color:#fff; letter-spacing:-0.01em;
@@ -253,6 +263,48 @@ body:not(.tauri) .tb-controls{display:none;}
 .modal-meta{padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:28px; font-family:var(--mono); font-size:10.5px; color:var(--text-faint); flex-wrap:wrap; background:rgba(255,255,255,0.015);}
 .modal-meta b{color:var(--text-dim); font-weight:500; margin-right:7px;}
 
+/* ---------- 设置 ---------- */
+.settings-overlay{z-index:70;}
+.settings-modal{width:620px; max-height:calc(100vh - var(--tb-h) - 44px);}
+.settings-title-wrap{min-width:0;}
+.settings-title-wrap h2{font-size:15px;}
+.settings-title-wrap p{font-size:11px; color:var(--text-faint); margin-top:4px; line-height:1.45;}
+.settings-body{display:flex; flex-direction:column; gap:22px;}
+.settings-section{display:flex; flex-direction:column; gap:13px;}
+.settings-section-title{font-size:10px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--text-faint);}
+.settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.settings-field{display:flex; flex-direction:column; gap:7px; min-width:0;}
+.settings-field.full{grid-column:1/-1;}
+.settings-field label{font-size:11.5px; font-weight:500; color:var(--text-dim);}
+.settings-control{
+  width:100%; min-height:38px; padding:9px 11px; color:var(--text); background:var(--panel);
+  border:1px solid var(--border); border-radius:10px; font:12px var(--sans); outline:none;
+  transition:border-color .18s var(--ease), background .18s var(--ease), box-shadow .18s var(--ease);
+  color-scheme:dark;
+}
+.settings-control:hover{border-color:var(--border-hover);}
+.settings-control:focus{border-color:var(--accent); background:var(--panel-2); box-shadow:0 0 0 3px var(--accent-soft);}
+.settings-control[readonly]{color:var(--text-dim); cursor:default; background:rgba(255,255,255,.018);}
+.settings-help{font-size:10.5px; line-height:1.5; color:var(--text-faint);}
+.settings-key-row{display:flex; align-items:center; gap:8px;}
+.settings-key-row .settings-control{flex:1; min-width:0; font-family:var(--mono);}
+.text-btn{padding:8px 10px; white-space:nowrap; color:var(--text-dim); background:transparent; border:1px solid var(--border); border-radius:9px; font:11px var(--sans); cursor:pointer; transition:all .18s var(--ease);}
+.text-btn:hover{color:var(--err); border-color:rgba(251,113,133,.38); background:var(--err-bg);}
+.text-btn[hidden]{display:none;}
+.key-state{display:flex; align-items:center; gap:6px; min-height:16px; font:10.5px var(--mono); color:var(--text-faint);}
+.key-state.configured{color:var(--ok);}
+.key-state .key-dot{width:5px; height:5px; border-radius:50%; background:currentColor;}
+.settings-privacy{padding:11px 13px; border:1px solid var(--border); border-radius:10px; background:rgba(110,107,239,.06); font-size:10.5px; line-height:1.55; color:var(--text-faint);}
+.settings-message{min-height:18px; font-size:11px; color:var(--err);}
+.settings-message.success{color:var(--ok);}
+.settings-footer{padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; background:rgba(255,255,255,.015);}
+.settings-action{padding:8px 15px; border-radius:9px; font:12px var(--sans); cursor:pointer; transition:all .18s var(--ease);}
+.settings-cancel{color:var(--text-dim); background:transparent; border:1px solid var(--border);}
+.settings-cancel:hover{color:var(--text); background:var(--panel-2); border-color:var(--border-hover);}
+.settings-save{color:#fff; background:linear-gradient(180deg,#7B78F2,#6259E4); border:1px solid transparent; box-shadow:0 5px 16px -7px rgba(110,107,239,.9);}
+.settings-save:hover{filter:brightness(1.08); transform:translateY(-1px);}
+.settings-save:disabled{opacity:.55; cursor:wait; transform:none;}
+
 /* ---------- 终端会话视图 ---------- */
 /* top 让出标题栏，窗口按钮在终端全屏时仍可点 */
 .term-overlay{position:fixed; inset:var(--tb-h) 0 0 0; background:var(--bg); display:none; flex-direction:column; z-index:60;}
@@ -289,6 +341,8 @@ body:not(.tauri) .tb-controls{display:none;}
   .overview .summary{font-size:16px;}
   .search input{width:100%;}
   .search{width:100%; margin-left:0;}
+  .settings-grid{grid-template-columns:1fr;}
+  .settings-field.full{grid-column:auto;}
 }
 </style>
 </head>
@@ -296,7 +350,18 @@ body:not(.tauri) .tb-controls{display:none;}
 
 <div class="titlebar" data-tauri-drag-region>
   <div class="tb-left" data-tauri-drag-region>
-    <div class="logo"><i></i><i></i><i></i><i></i></div>
+    <div class="logo" aria-hidden="true">
+      <!-- 几何与 icons/icon.ico 同源：按包围盒居中，字形占比 0.66 -->
+      <svg viewBox="0 0 24 24">
+        <g stroke="#fff" stroke-width="1.89" stroke-linecap="round" opacity=".8">
+          <path d="M11.76 11.29L6.11 6.11M11.76 11.29L17.89 8.46M11.76 11.29L9.41 17.89"/>
+        </g>
+        <g fill="#fff">
+          <circle cx="6.11" cy="6.11" r="2.03"/><circle cx="17.89" cy="8.46" r="2.03"/><circle cx="9.41" cy="17.89" r="2.03"/>
+          <circle cx="11.76" cy="11.29" r="3.11"/>
+        </g>
+      </svg>
+    </div>
     <h1 data-i18n="appTitle">Agent 控制台</h1>
     <span class="tb-sub"><span class="live"><span class="d"></span>LIVE</span><span data-i18n="refreshRate">· 刷新 5s</span></span>
   </div>
@@ -325,10 +390,9 @@ body:not(.tauri) .tb-controls{display:none;}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="search" type="text" placeholder="搜索任务 / 节点 / 摘要…" data-i18n-placeholder="searchPlaceholder" autocomplete="off">
       </div>
-      <select class="language-select" id="language-select" aria-label="语言" data-i18n-aria-label="language">
-        <option value="zh-CN">中文</option>
-        <option value="en">English</option>
-      </select>
+      <button class="icon-btn settings-btn" id="settings-btn" title="设置" aria-label="设置" data-i18n-title="settings" data-i18n-aria-label="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.01V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.96 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+      </button>
       <button class="new-term-btn" id="new-term-btn" title="新建终端会话" data-i18n="newTerminal" data-i18n-title="newTerminalTitle">+ 新建终端</button>
     </div>
   </header>
@@ -370,6 +434,73 @@ body:not(.tauri) .tb-controls{display:none;}
   </div>
 </div>
 
+<div class="overlay settings-overlay" id="settings-overlay">
+  <div class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-head">
+      <div class="settings-title-wrap">
+        <h2 id="settings-title" data-i18n="settings">设置</h2>
+        <p data-i18n="settingsSubtitle">界面与 AI 摘要服务</p>
+      </div>
+      <button class="modal-close" id="settings-close" aria-label="关闭" data-i18n-aria-label="close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body settings-body">
+      <section class="settings-section">
+        <div class="settings-section-title" data-i18n="appearance">界面</div>
+        <div class="settings-grid">
+          <div class="settings-field">
+            <label for="settings-language" data-i18n="language">语言</label>
+            <select class="settings-control" id="settings-language">
+              <option value="zh-CN">简体中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-title" data-i18n="aiSummaryService">AI 摘要服务</div>
+        <div class="settings-grid">
+          <div class="settings-field">
+            <label for="settings-provider" data-i18n="apiProvider">API 厂商</label>
+            <select class="settings-control" id="settings-provider">
+              <option value="deepseek">DeepSeek</option>
+              <option value="openai">OpenAI</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="siliconflow">SiliconFlow</option>
+              <option value="custom" data-i18n="customProvider">自定义（OpenAI 兼容）</option>
+            </select>
+          </div>
+          <div class="settings-field">
+            <label for="settings-model" data-i18n="model">模型</label>
+            <input class="settings-control" id="settings-model" type="text" spellcheck="false" autocomplete="off">
+            <div class="settings-help" data-i18n="nonThinkingModelHelp">仅支持非思考模式；推理专用模型会被拒绝。</div>
+          </div>
+          <div class="settings-field full">
+            <label for="settings-base-url">Base URL</label>
+            <input class="settings-control" id="settings-base-url" type="url" spellcheck="false" autocomplete="off">
+            <div class="settings-help" id="base-url-help" data-i18n="presetUrlHelp">选择厂商时使用官方预置地址；选择自定义后可编辑。</div>
+          </div>
+          <div class="settings-field full">
+            <label for="settings-api-key">API Key</label>
+            <div class="settings-key-row">
+              <input class="settings-control" id="settings-api-key" type="password" autocomplete="new-password" data-i18n-placeholder="apiKeyPlaceholder">
+              <button class="text-btn" id="clear-api-key" type="button" data-i18n="clearSavedKey" hidden>清除已保存 Key</button>
+            </div>
+            <div class="key-state" id="key-state"><span class="key-dot"></span><span id="key-state-text"></span></div>
+          </div>
+        </div>
+      </section>
+      <div class="settings-privacy" data-i18n="keyPrivacyNote">Key 仅保存在当前用户的本地配置目录；前端再次读取时不会获得完整 Key。</div>
+      <div class="settings-message" id="settings-message" role="status"></div>
+    </div>
+    <div class="settings-footer">
+      <button class="settings-action settings-cancel" id="settings-cancel" type="button" data-i18n="cancel">取消</button>
+      <button class="settings-action settings-save" id="settings-save" type="button" data-i18n="saveSettings">保存设置</button>
+    </div>
+  </div>
+</div>
+
 <div class="term-overlay" id="term-overlay">
   <div class="term-bar">
     <span class="term-title" id="term-title" data-i18n="terminal">终端</span>
@@ -400,7 +531,14 @@ const messages = {
     rename:'重命名', renamePrompt:'重命名会话：', renameFailed:'重命名失败：', noSummary:'（无摘要）',
     noHistory:'（暂无历史记录）', status:'状态', updated:'更新', processEnded:'[进程已结束]',
     createFailed:'创建会话失败：', commandPrompt:'输入要运行的命令（例如: pwsh / claude / cmd）：',
-    namePrompt:'给这个会话起个名字（留空则用命令名）：'
+    namePrompt:'给这个会话起个名字（留空则用命令名）：', settings:'设置', settingsSubtitle:'界面与 AI 摘要服务',
+    appearance:'界面', aiSummaryService:'AI 摘要服务', apiProvider:'API 厂商', customProvider:'自定义（OpenAI 兼容）',
+    model:'模型', nonThinkingModelHelp:'仅支持非思考模式；推理专用模型会被拒绝。', presetUrlHelp:'选择厂商时使用官方预置地址；选择自定义后可编辑。',
+    apiKeyPlaceholder:'填写新 Key；留空则保留当前 Key', clearSavedKey:'清除已保存 Key',
+    keyNotConfigured:'未配置 API Key（自定义服务可不填写）', keySaved:'已保存 {hint}', keyFromEnvironment:'使用环境变量 {hint}',
+    keyWillClear:'保存后清除已保存 Key', keyPrivacyNote:'Key 仅保存在当前用户的本地配置目录；前端再次读取时不会获得完整 Key。',
+    thinkingModelUnsupported:'不支持思考/推理模式，请选择支持非思考模式的模型。',
+    cancel:'取消', saveSettings:'保存设置', settingsSaved:'设置已保存', settingsSaveFailed:'保存失败：', settingsLoadFailed:'读取设置失败：'
   },
   en: {
     appTitle:'Agent Dashboard', refreshRate:'· Refresh 5s', language:'Language', newTerminal:'+ New terminal',
@@ -416,7 +554,14 @@ const messages = {
     rename:'Rename', renamePrompt:'Rename session:', renameFailed:'Rename failed: ', noSummary:'(No summary)',
     noHistory:'(No activity recorded)', status:'Status', updated:'Updated', processEnded:'[Process exited]',
     createFailed:'Failed to create session: ', commandPrompt:'Command to run (for example: pwsh / claude / cmd):',
-    namePrompt:'Session name (leave empty to use the command):'
+    namePrompt:'Session name (leave empty to use the command):', settings:'Settings', settingsSubtitle:'Interface and AI summary service',
+    appearance:'Appearance', aiSummaryService:'AI summary service', apiProvider:'API provider', customProvider:'Custom (OpenAI-compatible)',
+    model:'Model', nonThinkingModelHelp:'Non-thinking mode only; reasoning-only models are rejected.', presetUrlHelp:'Provider selections use their official preset URL; choose Custom to edit it.',
+    apiKeyPlaceholder:'Enter a new key; leave blank to keep the current key', clearSavedKey:'Clear saved key',
+    keyNotConfigured:'No API key configured (optional for custom services)', keySaved:'Saved {hint}', keyFromEnvironment:'Using environment variable {hint}',
+    keyWillClear:'The saved key will be cleared', keyPrivacyNote:'The key is stored only in the current user’s local configuration directory. The full key is never returned to the front end.',
+    thinkingModelUnsupported:'Thinking/reasoning mode is not supported. Choose a model with a non-thinking mode.',
+    cancel:'Cancel', saveSettings:'Save settings', settingsSaved:'Settings saved', settingsSaveFailed:'Save failed: ', settingsLoadFailed:'Could not load settings: '
   }
 };
 const storedLocale = localStorage.getItem('agent-dashboard-locale');
@@ -429,6 +574,29 @@ function t(key, vars={}){
 }
 function noun(count, singular, plural){ return count === 1 ? singular : plural; }
 let statusLabel = {};
+const providerPresets = {
+  deepseek:{baseUrl:'https://api.deepseek.com', model:'deepseek-v4-flash'},
+  openai:{baseUrl:'https://api.openai.com/v1', model:'gpt-4.1-mini'},
+  openrouter:{baseUrl:'https://openrouter.ai/api/v1', model:'openai/gpt-4.1-mini'},
+  siliconflow:{baseUrl:'https://api.siliconflow.cn/v1', model:'Pro/zai-org/GLM-4.7'},
+  custom:{baseUrl:'', model:''}
+};
+let currentAppSettings = null;
+let clearSavedApiKey = false;
+function isThinkingOnlyModel(model){
+  const normalized = String(model || '').trim().toLowerCase().replaceAll('_', '-');
+  const id = (normalized.split('/').pop() || normalized).split(':')[0];
+  return normalized.includes('reasoner') || normalized.includes('reasoning') || normalized.includes('thinking')
+    || id === 'qwq' || id.startsWith('qwq-')
+    || id === 'r1' || id.startsWith('r1-') || id.includes('-r1-') || id.endsWith('-r1')
+    || ['o1','o3','o4'].some(family=>id === family || id.startsWith(family + '-'))
+    || id === 'gpt-5' || id.startsWith('gpt-5-') || id.startsWith('gpt-5.')
+    || id.startsWith('gpt-oss') || id.startsWith('codex-mini');
+}
+function localizedSettingsError(error){
+  const value = String(error || '');
+  return value.includes('THINKING_MODE_NOT_SUPPORTED') ? t('thinkingModelUnsupported') : value;
+}
 function applyStaticTranslations(){
   document.documentElement.lang = locale;
   document.title = t('appTitle');
@@ -439,7 +607,8 @@ function applyStaticTranslations(){
   document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.title = t(el.dataset.i18nTitle); });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ el.placeholder = t(el.dataset.i18nPlaceholder); });
   document.querySelectorAll('[data-i18n-aria-label]').forEach(el=>{ el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel)); });
-  document.getElementById('language-select').value = locale;
+  const languageSelect = document.getElementById('language-select');
+  if (languageSelect) languageSelect.value = locale;
   statusLabel = {ok:t('statusOk'), warn:t('statusWarn'), err:t('statusErr'), idle:t('statusIdle')};
 }
 
@@ -637,6 +806,102 @@ function openDetail(id){
   document.getElementById('overlay').classList.add('show');
 }
 function closeDetail(){ document.getElementById('overlay').classList.remove('show'); }
+
+function renderKeyState(){
+  const state = document.getElementById('key-state');
+  const text = document.getElementById('key-state-text');
+  const clearButton = document.getElementById('clear-api-key');
+  if (clearSavedApiKey){
+    state.classList.remove('configured');
+    text.textContent = t('keyWillClear');
+    clearButton.hidden = true;
+    return;
+  }
+  if (currentAppSettings?.hasApiKey){
+    state.classList.add('configured');
+    text.textContent = currentAppSettings.apiKeySource === 'environment'
+      ? t('keyFromEnvironment', {hint:currentAppSettings.apiKeyHint || ''})
+      : t('keySaved', {hint:currentAppSettings.apiKeyHint || ''});
+    clearButton.hidden = currentAppSettings.apiKeySource !== 'settings';
+  } else {
+    state.classList.remove('configured');
+    text.textContent = t('keyNotConfigured');
+    clearButton.hidden = true;
+  }
+}
+
+function syncProviderFields(resetModel=false){
+  const provider = document.getElementById('settings-provider').value;
+  const baseUrl = document.getElementById('settings-base-url');
+  const model = document.getElementById('settings-model');
+  const preset = providerPresets[provider] || providerPresets.custom;
+  baseUrl.readOnly = provider !== 'custom';
+  if (provider !== 'custom') baseUrl.value = preset.baseUrl;
+  if (resetModel && provider !== 'custom') model.value = preset.model;
+}
+
+function populateSettings(settings){
+  currentAppSettings = settings;
+  clearSavedApiKey = false;
+  const provider = settings.provider || 'deepseek';
+  document.getElementById('settings-language').value = settings.language || locale;
+  document.getElementById('settings-provider').value = provider;
+  document.getElementById('settings-base-url').value = settings.baseUrl || providerPresets[provider]?.baseUrl || '';
+  document.getElementById('settings-model').value = settings.model || providerPresets[provider]?.model || '';
+  document.getElementById('settings-api-key').value = '';
+  syncProviderFields(false);
+  renderKeyState();
+}
+
+async function openSettings(){
+  if (!hasTauri()) return;
+  const overlay = document.getElementById('settings-overlay');
+  const message = document.getElementById('settings-message');
+  message.textContent = '';
+  message.className = 'settings-message';
+  overlay.classList.add('show');
+  try {
+    populateSettings(await window.__TAURI__.core.invoke('get_app_settings'));
+  } catch(e) {
+    message.textContent = t('settingsLoadFailed') + e;
+  }
+}
+function closeSettings(){ document.getElementById('settings-overlay').classList.remove('show'); }
+
+async function saveSettings(){
+  const saveButton = document.getElementById('settings-save');
+  const message = document.getElementById('settings-message');
+  saveButton.disabled = true;
+  message.textContent = '';
+  message.className = 'settings-message';
+  try {
+    const apiKey = document.getElementById('settings-api-key').value.trim();
+    const model = document.getElementById('settings-model').value.trim();
+    if (isThinkingOnlyModel(model)) throw 'THINKING_MODE_NOT_SUPPORTED';
+    const saved = await window.__TAURI__.core.invoke('save_app_settings', {input:{
+      language:document.getElementById('settings-language').value,
+      provider:document.getElementById('settings-provider').value,
+      baseUrl:document.getElementById('settings-base-url').value.trim(),
+      model,
+      apiKey:apiKey || null,
+      clearApiKey:clearSavedApiKey
+    }});
+    populateSettings(saved);
+    for (const session of Object.values(termSessions)){
+      session.lastSubmittedSemantic = null;
+      session.pendingSemantic = null;
+      session.semanticStableSamples = 0;
+    }
+    await changeLocale(saved.language || locale);
+    message.textContent = t('settingsSaved');
+    message.className = 'settings-message success';
+  } catch(e) {
+    message.textContent = t('settingsSaveFailed') + localizedSettingsError(e);
+  } finally {
+    saveButton.disabled = false;
+  }
+}
+
 async function tick(){
   allTasks = await fetchTasks();
   for (const task of allTasks){
@@ -661,7 +926,21 @@ document.querySelectorAll('.chip').forEach(c=>{
 document.getElementById('search').addEventListener('input', e=>{ searchQuery = e.target.value.trim(); renderCards(applyFilter(allTasks), false); });
 document.getElementById('modal-close').onclick = closeDetail;
 document.getElementById('overlay').onclick = e=>{ if(e.target.id==='overlay') closeDetail(); };
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeDetail(); closeTerminalView(); } });
+document.getElementById('settings-btn').onclick = openSettings;
+document.getElementById('settings-close').onclick = closeSettings;
+document.getElementById('settings-cancel').onclick = closeSettings;
+document.getElementById('settings-save').onclick = saveSettings;
+document.getElementById('settings-overlay').onclick = e=>{ if(e.target.id==='settings-overlay') closeSettings(); };
+document.getElementById('settings-provider').addEventListener('change', e=>{
+  if (!document.getElementById('settings-api-key').value.trim()){
+    clearSavedApiKey = currentAppSettings?.apiKeySource === 'settings' && e.target.value !== currentAppSettings.provider;
+    renderKeyState();
+  }
+  syncProviderFields(true);
+});
+document.getElementById('settings-api-key').addEventListener('input', e=>{ if(e.target.value.trim()) clearSavedApiKey = false; renderKeyState(); });
+document.getElementById('clear-api-key').onclick = ()=>{ clearSavedApiKey = true; document.getElementById('settings-api-key').value=''; renderKeyState(); };
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeSettings(); closeDetail(); closeTerminalView(); } });
 
 async function changeLocale(nextLocale){
   const next = nextLocale === 'en' ? 'en' : 'zh-CN';
@@ -680,11 +959,22 @@ async function changeLocale(nextLocale){
   firstLoad = false;
   await tick();
 }
-document.getElementById('language-select').addEventListener('change', e=>changeLocale(e.target.value));
 applyStaticTranslations();
-if (hasTauri()) window.__TAURI__.core.invoke('set_language', {language:locale}).catch(()=>{});
-
-tick();
+async function initializeApp(){
+  if (hasTauri()){
+    try {
+      currentAppSettings = await window.__TAURI__.core.invoke('get_app_settings');
+      if (currentAppSettings.language === 'en' || currentAppSettings.language === 'zh-CN'){
+        locale = currentAppSettings.language;
+        localStorage.setItem('agent-dashboard-locale', locale);
+        applyStaticTranslations();
+      }
+      await window.__TAURI__.core.invoke('set_language', {language:locale});
+    } catch(e){}
+  }
+  await tick();
+}
+initializeApp();
 setInterval(tick, 5000);
 
 // ===== 终端会话（仅桌面版可用） =====

@@ -11,6 +11,7 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::agent_support::{llm_input, AgentKind, AgentState, NameSource, UiLanguage};
 use crate::pty::PtyHandle;
+use crate::settings::SettingsManager;
 
 const SUMMARY_INTERVAL_SECS: u64 = 10;
 const BUFFER_TAIL_BYTES: usize = 8192;
@@ -98,10 +99,10 @@ pub struct SessionManager {
 }
 
 impl SessionManager {
-    pub fn new() -> Self {
+    pub fn new(initial_language: UiLanguage) -> Self {
         let sessions: Arc<Mutex<HashMap<String, Session>>> = Arc::new(Mutex::new(HashMap::new()));
         let sessions_for_summary = Arc::clone(&sessions);
-        let language = Arc::new(Mutex::new(UiLanguage::default()));
+        let language = Arc::new(Mutex::new(initial_language));
         let language_for_summary = Arc::clone(&language);
         // 后台兜底摘要：对没有前端屏幕文本更新的会话（detach 状态），用 buffer 摘要
         std::thread::spawn(move || loop {
@@ -109,6 +110,25 @@ impl SessionManager {
             summarize_all(&sessions_for_summary, &language_for_summary);
         });
         Self { sessions, language }
+    }
+
+    pub(crate) fn invalidate_summaries(&self) {
+        let Ok(sessions) = self.sessions.lock() else {
+            return;
+        };
+        for session in sessions.values() {
+            if let Ok(mut control) = session.summary_control.lock() {
+                control.latest_key = None;
+                control.pending = None;
+                control.cache.clear();
+            }
+            session
+                .last_buffer_summary_revision
+                .store(u64::MAX, Ordering::SeqCst);
+            if let Ok(mut last_screen_ts) = session.last_screen_ts.lock() {
+                *last_screen_ts = 0.0;
+            }
+        }
     }
 
     /// 接收 OpenCode plugin / Claude Code hook / Codex hook 的结构化生命周期事件。
@@ -479,6 +499,7 @@ pub fn create_session(
 #[tauri::command]
 pub fn summarize_screen(
     state: State<'_, SessionManager>,
+    settings: State<'_, SettingsManager>,
     id: String,
     text: String,
     agent_kind: Option<String>,
@@ -548,7 +569,7 @@ pub fn summarize_screen(
             }
         }
 
-        let key = semantic_key(agent, state, language, &clean);
+        let key = semantic_key(agent, state, language, settings.revision(), &clean);
         let job = SummaryJob {
             key,
             text: clean.clone(),
@@ -595,11 +616,18 @@ pub fn summarize_screen(
     Ok(())
 }
 
-fn semantic_key(agent: AgentKind, state: AgentState, language: UiLanguage, text: &str) -> u64 {
+fn semantic_key(
+    agent: AgentKind,
+    state: AgentState,
+    language: UiLanguage,
+    settings_revision: u64,
+    text: &str,
+) -> u64 {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     agent.hash(&mut hasher);
     state.hash(&mut hasher);
     language.hash(&mut hasher);
+    settings_revision.hash(&mut hasher);
     text.hash(&mut hasher);
     hasher.finish()
 }
@@ -662,23 +690,43 @@ fn spawn_summary_worker(
                     Err(_) => return,
                 };
 
-                if let Ok((status, desc)) = outcome {
-                    if control.cache.len() >= SUMMARY_CACHE_SIZE {
-                        control.cache.clear();
+                match outcome {
+                    Ok((status, desc)) => {
+                        if control.cache.len() >= SUMMARY_CACHE_SIZE {
+                            control.cache.clear();
+                        }
+                        control
+                            .cache
+                            .insert(job.key, (status.clone(), desc.clone()));
+                        log_summary(&format!("{} [screen] 状态={} 摘要={}", id, status, desc));
+                        // 只允许当前最新语义状态更新卡片，防止慢请求乱序覆盖。
+                        if control.latest_key == Some(job.key) {
+                            if let Ok(mut g) = sess.summary.lock() {
+                                *g = desc;
+                            }
+                            if let Ok(mut st) = sess.status.lock() {
+                                *st = status;
+                            }
+                        }
                     }
-                    control
-                        .cache
-                        .insert(job.key, (status.clone(), desc.clone()));
-                    log_summary(&format!("{} [screen] 状态={} 摘要={}", id, status, desc));
-                    // 只允许当前最新语义状态更新卡片，防止慢请求乱序覆盖。
-                    if control.latest_key == Some(job.key) {
+                    Err(error)
+                        if error == crate::settings::THINKING_MODE_ERROR
+                            && control.latest_key == Some(job.key) =>
+                    {
+                        let description = match job.language {
+                            UiLanguage::ZhCn => "AI 摘要仅支持非思考模式，请更换模型。",
+                            UiLanguage::En => {
+                                "AI summaries support non-thinking mode only; choose another model."
+                            }
+                        };
                         if let Ok(mut g) = sess.summary.lock() {
-                            *g = desc;
+                            *g = description.to_string();
                         }
                         if let Ok(mut st) = sess.status.lock() {
-                            *st = status;
+                            *st = "err".to_string();
                         }
                     }
+                    Err(_) => {}
                 }
 
                 let pending = control.pending.take();
@@ -843,8 +891,14 @@ fn summarize_all(
 }
 
 #[tauri::command]
-pub fn set_language(state: State<'_, SessionManager>, language: String) -> Result<(), String> {
-    state.set_language_value(UiLanguage::parse(Some(&language)))
+pub fn set_language(
+    state: State<'_, SessionManager>,
+    settings: State<'_, SettingsManager>,
+    language: String,
+) -> Result<(), String> {
+    let language = UiLanguage::parse(Some(&language));
+    settings.set_language(language)?;
+    state.set_language_value(language)
 }
 
 fn log_summary(msg: &str) {

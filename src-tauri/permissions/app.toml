@@ -49,3 +49,8 @@ commands.allow = ["update_session_metadata"]
 identifier = "allow-set-language"
 description = "Allow switching the interface and summary language"
 commands.allow = ["set_language"]
+
+[[permission]]
+identifier = "allow-app-settings"
+description = "Allow reading and updating local application settings"
+commands.allow = ["get_app_settings", "save_app_settings"]

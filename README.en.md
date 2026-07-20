@@ -12,6 +12,7 @@ A local desktop control center for OpenCode, Claude Code, Codex, and ordinary CL
 - External summaries through DeepSeek `deepseek-v4-flash`, with an optional local llama.cpp fallback.
 - Card titles prefer native agent task names; a manual dashboard rename cannot be overwritten later.
 - Complete Simplified Chinese/English support for UI text, deterministic lifecycle summaries, AI output language, and the NSIS installer.
+- A built-in settings panel for language, API provider, Base URL, model, and API key, with validated official provider presets.
 - A loopback HTTP reporting API for custom agents, bound only to `127.0.0.1:8787`.
 
 ## Repository layout
@@ -45,11 +46,31 @@ The application uses `127.0.0.1:8787`. Exit any older instance that still owns t
 
 ## AI summary configuration
 
+Use the gear button in the top-right corner for normal configuration. Presets include:
+
+| Provider | Preset Base URL |
+|---|---|
+| DeepSeek | `https://api.deepseek.com` |
+| OpenAI | `https://api.openai.com/v1` |
+| OpenRouter | `https://openrouter.ai/api/v1` |
+| SiliconFlow | `https://api.siliconflow.cn/v1` |
+| Custom (OpenAI-compatible) | User supplied |
+
+Preset providers have a server-enforced Base URL; select Custom to edit it. The model remains editable. Changing API settings invalidates old summary caches so subsequent summaries use the new service.
+
+The API key is stored in the current user's configuration directory (`%APPDATA%\Agent Dashboard\settings.json` on Windows). It is never written into the repository or returned in full to the front end. The file relies on user-directory OS permissions and is not encrypted with the system keychain.
+
+AI summaries support non-thinking mode only. Hybrid models such as DeepSeek V4 and supported SiliconFlow models have thinking explicitly disabled. Explicit reasoning models such as `deepseek-reasoner`, R1, QwQ, the OpenAI o-series, and GPT-5 are rejected when settings are saved. A response that still contains reasoning fields or `<think>` markup is treated as an error.
+
+Environment variables remain available for headless configuration and compatibility:
+
 To use external DeepSeek summaries:
 
 ```dotenv
 DEEPSEEK_API_KEY=your_key_here
 ```
+
+Other providers read `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, and `SILICONFLOW_API_KEY`. A key saved through the settings panel takes precedence.
 
 Never commit `.env`; the repository only contains an empty `.env.example`.
 

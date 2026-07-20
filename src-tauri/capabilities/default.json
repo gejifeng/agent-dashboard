@@ -24,6 +24,7 @@
     "allow-rename-session",
     "allow-summarize-screen",
     "allow-update-session-metadata",
-    "allow-set-language"
+    "allow-set-language",
+    "allow-app-settings"
   ]
 }
